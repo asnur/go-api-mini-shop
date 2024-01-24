@@ -7,7 +7,7 @@ type Product struct {
 	Price       int      `json:"price" gorm:"type:int"`
 	Stock       int      `json:"stock" gorm:"type:int"`
 	CategoryID  int      `json:"category_id" gorm:"type:int"`
-	Category    Category `gorm:"foreignKey:CategoryID"`
+	Category    Category `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
 }
 
 func (p *Product) TableName() string {

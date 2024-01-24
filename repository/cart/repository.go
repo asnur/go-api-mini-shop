@@ -17,6 +17,10 @@ func (r *Repository) Create(cart *domain.Cart) (*domain.Cart, error) {
 		return nil, err
 	}
 
+	if err := r.DB.Preload(clause.Associations).First(&cart, cart.ID).Error; err != nil {
+		return nil, err
+	}
+
 	return cart, nil
 }
 
@@ -43,6 +47,10 @@ func (r *Repository) FindAll(user_id int) ([]*domain.Cart, error) {
 // Update implements domain.CartRepository.
 func (r *Repository) Update(cart *domain.Cart) (*domain.Cart, error) {
 	if err := r.DB.Save(&cart).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.DB.Preload(clause.Associations).First(&cart, cart.ID).Error; err != nil {
 		return nil, err
 	}
 

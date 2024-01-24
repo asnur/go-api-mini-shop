@@ -24,7 +24,7 @@ func ConnectDB() (*gorm.DB, error) {
 	})
 
 	// AutoMigrate
-	db.AutoMigrate(&domain.Product{}, &domain.User{})
+	db.AutoMigrate(&domain.Product{}, &domain.User{}, &domain.Cart{}, &domain.Order{}, &domain.OrderDetail{})
 
 	if err != nil {
 		panic("failed to connect database")

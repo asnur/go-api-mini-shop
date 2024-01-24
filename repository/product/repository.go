@@ -16,6 +16,10 @@ func (r *Repository) Create(product *domain.Product) (*domain.Product, error) {
 		return nil, err
 	}
 
+	if err := r.DB.Preload("Category").First(&product, product.ID).Error; err != nil {
+		return nil, err
+	}
+
 	return product, nil
 }
 
@@ -53,6 +57,10 @@ func (r *Repository) FindByID(id int) (*domain.Product, error) {
 // Update implements domain.ProductRepository.
 func (r *Repository) Update(product *domain.Product) (*domain.Product, error) {
 	if err := r.DB.Save(&product).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.DB.Preload("Category").First(&product, product.ID).Error; err != nil {
 		return nil, err
 	}
 
