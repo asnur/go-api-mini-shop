@@ -1,6 +1,8 @@
 package cart
 
-import "go-api-mini-shop/domain"
+import (
+	"go-api-mini-shop/domain"
+)
 
 type UseCase struct {
 	Repository        domain.CartRepository
@@ -17,8 +19,8 @@ func (u *UseCase) Delete(id int) error {
 }
 
 // GetAll implements domain.CartUsecase.
-func (u *UseCase) GetAll(user_id int) ([]*domain.Cart, error) {
-	result, err := u.Repository.FindAll(user_id)
+func (u *UseCase) GetAll(params map[string]any) ([]*domain.Cart, error) {
+	result, err := u.Repository.FindAll(params)
 
 	if err != nil {
 		return nil, err
@@ -28,23 +30,43 @@ func (u *UseCase) GetAll(user_id int) ([]*domain.Cart, error) {
 }
 
 // Insert implements domain.CartUsecase.
-func (u *UseCase) Insert(product_id int, user_id int, quantity int) (*domain.Cart, error) {
-	var cart domain.Cart
-
-	cart.ProductID = product_id
-	cart.UserID = user_id
-	cart.Quantity = quantity
-
-	// Get product price
-	product, err := u.RepositoryProduct.FindByID(product_id)
+func (u *UseCase) Insert(cart *domain.Cart) (*domain.Cart, error) {
+	// Check if product already in cart
+	productExist, err := u.Repository.FindAll(map[string]any{
+		"product_id": cart.ProductID,
+		"user_id":    cart.UserID,
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	cart.Total = product.Price * quantity
+	if len(productExist) > 0 {
+		product := *productExist[0]
 
-	result, err := u.Repository.Create(&cart)
+		cart.ID = product.ID
+		cart.Quantity = cart.Quantity + product.Quantity
+		cart.Total = cart.Quantity * product.Product.Price
+
+		result, err := u.Repository.Update(cart)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
+	}
+
+	// Get product price
+	product, err := u.RepositoryProduct.FindByID(cart.ProductID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	cart.Total = product.Price * cart.Quantity
+
+	result, err := u.Repository.Create(cart)
 
 	if err != nil {
 		return nil, err
@@ -55,21 +77,16 @@ func (u *UseCase) Insert(product_id int, user_id int, quantity int) (*domain.Car
 
 // Update implements domain.CartUsecase.
 func (u *UseCase) Update(id int, quantity int) (*domain.Cart, error) {
-	var cart domain.Cart
-
-	cart.ID = id
-	cart.Quantity = quantity
-
-	// Get product price
-	product, err := u.RepositoryProduct.FindByID(cart.ProductID)
+	cart, err := u.Repository.FindByID(id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	cart.Total = product.Price * quantity
+	cart.Quantity = quantity
+	cart.Total = cart.Quantity * cart.Product.Price
 
-	result, err := u.Repository.Update(&cart)
+	result, err := u.Repository.Update(cart)
 
 	if err != nil {
 		return nil, err

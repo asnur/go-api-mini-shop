@@ -33,10 +33,10 @@ func (r *Repository) Delete(id int) error {
 }
 
 // FindAll implements domain.ProductRepository.
-func (r *Repository) FindAll() ([]*domain.Product, error) {
+func (r *Repository) FindAll(params map[string]any) ([]*domain.Product, error) {
 	var products []*domain.Product
 
-	if err := r.DB.Preload("Category").Find(&products).Error; err != nil {
+	if err := r.DB.Preload("Category").Where(params).Find(&products).Error; err != nil {
 		return nil, err
 	}
 

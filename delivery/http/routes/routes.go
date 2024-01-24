@@ -11,9 +11,11 @@ import (
 )
 
 type Controllers struct {
+	CartController     controllers.CartController
 	UserController     controllers.UserController
 	CateGoryController controllers.CategoryController
 	ProductController  controllers.ProductController
+	OrderController    controllers.OrderController
 }
 
 func RegisterRoutes(c Controllers, ctx *fiber.App) {
@@ -55,4 +57,17 @@ func RegisterRoutes(c Controllers, ctx *fiber.App) {
 	productRoutes.Put("/:id", c.ProductController.Update)
 	productRoutes.Delete("/:id", c.ProductController.Delete)
 
+	// Cart
+	cartRoutes := v1.Group("/cart")
+	cartRoutes.Get("/", c.CartController.GetAll)
+	cartRoutes.Post("/", c.CartController.Insert)
+	cartRoutes.Put("/", c.CartController.Update)
+	cartRoutes.Delete("/:id", c.CartController.Delete)
+
+	// Order
+	orderRoutes := v1.Group("/order")
+	orderRoutes.Get("/", c.OrderController.GetAll)
+	orderRoutes.Get("/:id", c.OrderController.Detail)
+	orderRoutes.Post("/", c.OrderController.Insert)
+	orderRoutes.Delete("/:id", c.OrderController.Delete)
 }

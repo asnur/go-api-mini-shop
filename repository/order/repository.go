@@ -16,6 +16,10 @@ func (r *Repository) Create(order *domain.Order) (*domain.Order, error) {
 		return nil, err
 	}
 
+	if err := r.DB.Preload("OrderDetails.Product.Category").Preload("User").First(&order, order.ID).Error; err != nil {
+		return nil, err
+	}
+
 	return order, nil
 }
 
@@ -32,7 +36,7 @@ func (r *Repository) Delete(id int) error {
 func (r *Repository) FindAll(user_id int) ([]*domain.Order, error) {
 	var orders []*domain.Order
 
-	if err := r.DB.Preload("OrderItems").Where("user_id", user_id).Find(&orders).Error; err != nil {
+	if err := r.DB.Preload("OrderDetails.Product.Category").Preload("User").Where("user_id", user_id).Find(&orders).Error; err != nil {
 		return nil, err
 	}
 
@@ -43,7 +47,7 @@ func (r *Repository) FindAll(user_id int) ([]*domain.Order, error) {
 func (r *Repository) FindByID(id int) (*domain.Order, error) {
 	var order domain.Order
 
-	if err := r.DB.Preload("OrderItems").First(&order, id).Error; err != nil {
+	if err := r.DB.Preload("OrderDetails.Product.Category").Preload("User").First(&order, id).Error; err != nil {
 		return nil, err
 	}
 

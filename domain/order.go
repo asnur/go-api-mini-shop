@@ -3,10 +3,10 @@ package domain
 type Order struct {
 	ID           int           `json:"id" gorm:"primaryKey"`
 	UserID       int           `json:"user_id" gorm:"type:int"`
-	User         User          `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	User         User          `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user,omitempty"`
 	Total        int           `json:"total" gorm:"type:int"`
 	Status       int           `json:"status" gorm:"type:int"`
-	OrderDetails []OrderDetail `gorm:"foreignKey:OrderID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	OrderDetails []OrderDetail `gorm:"foreignKey:OrderID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"order_details,omitempty"`
 }
 
 func (o *Order) TableName() string {
@@ -16,7 +16,7 @@ func (o *Order) TableName() string {
 type OrderUsecase interface {
 	GetAll(user_id int) ([]*Order, error)
 	GetByID(id int) (*Order, error)
-	Insert(user_id int, total int, status int) (*Order, error)
+	Insert(user_id int, cart_id []int) (*Order, error)
 	Delete(id int) error
 }
 
@@ -30,9 +30,9 @@ type OrderRepository interface {
 type OrderDetail struct {
 	ID        int     `json:"id" gorm:"primaryKey"`
 	OrderID   int     `json:"order_id" gorm:"type:int;"`
-	Order     Order   `gorm:"foreignKey:OrderID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Order     Order   `gorm:"foreignKey:OrderID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
 	ProductID int     `json:"product_id" gorm:"type:int"`
-	Product   Product `gorm:"foreignKey:ProductID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Product   Product `gorm:"foreignKey:ProductID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"product,omitempty"`
 	Quantity  int     `json:"quantity" gorm:"type:int"`
 	Total     int     `json:"total" gorm:"type:int"`
 }

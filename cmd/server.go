@@ -9,8 +9,14 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/spf13/cobra"
 
+	cart_repository "go-api-mini-shop/repository/cart"
+	cart_usecase "go-api-mini-shop/usecase/cart"
+
 	category_repository "go-api-mini-shop/repository/category"
 	category_usecase "go-api-mini-shop/usecase/category"
+
+	order_repository "go-api-mini-shop/repository/order"
+	order_usecase "go-api-mini-shop/usecase/order"
 
 	product_repository "go-api-mini-shop/repository/product"
 	product_usecase "go-api-mini-shop/usecase/product"
@@ -47,15 +53,25 @@ var (
 			productUseCase := product_usecase.NewUseCase(productRepository)
 			productController := controllers.NewProductController(productUseCase)
 
+			cartRepository := cart_repository.NewRepository(db)
+			cartUseCase := cart_usecase.NewUseCase(cartRepository, productRepository)
+			cartController := controllers.NewCartController(cartUseCase)
+
+			orderRepository := order_repository.NewRepository(db)
+			orderUseCase := order_usecase.NewUseCase(orderRepository, cartRepository)
+			orderController := controllers.NewOrderController(orderUseCase)
+
 			userRepository := user_repository.NewRepository(db)
 			userUseCase := user_usecase.NewUseCase(userRepository)
 			userController := controllers.NewUserController(userUseCase)
 
 			// Initialize Controllers
 			registeredController := &routes.Controllers{
+				CartController:     *cartController,
 				UserController:     *userController,
 				CateGoryController: *categoryController,
 				ProductController:  *productController,
+				OrderController:    *orderController,
 			}
 
 			app := fiber.New()

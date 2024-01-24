@@ -1,9 +1,12 @@
 package order
 
-import "go-api-mini-shop/domain"
+import (
+	"go-api-mini-shop/domain"
+)
 
 type UseCase struct {
-	Repository domain.OrderRepository
+	Repository     domain.OrderRepository
+	RepositoryCart domain.CartRepository
 }
 
 // Delete implements domain.OrderUsecase.
@@ -38,12 +41,27 @@ func (u *UseCase) GetByID(id int) (*domain.Order, error) {
 }
 
 // Insert implements domain.OrderUsecase.
-func (u *UseCase) Insert(user_id int, total int, status int) (*domain.Order, error) {
+func (u *UseCase) Insert(user_id int, cart_id []int) (*domain.Order, error) {
 	var order domain.Order
 
 	order.UserID = user_id
-	order.Total = total
-	order.Status = status
+
+	// Get total price
+	for _, id := range cart_id {
+		cart, err := u.RepositoryCart.FindByID(id)
+
+		if err != nil {
+			return nil, err
+		}
+
+		order.Total += cart.Total
+
+		order.OrderDetails = append(order.OrderDetails, domain.OrderDetail{
+			ProductID: cart.ProductID,
+			Quantity:  cart.Quantity,
+			Total:     cart.Total,
+		})
+	}
 
 	result, err := u.Repository.Create(&order)
 
@@ -54,8 +72,9 @@ func (u *UseCase) Insert(user_id int, total int, status int) (*domain.Order, err
 	return result, nil
 }
 
-func NewUseCase(repository domain.OrderRepository) domain.OrderUsecase {
+func NewUseCase(repository domain.OrderRepository, repositoryCart domain.CartRepository) domain.OrderUsecase {
 	return &UseCase{
-		Repository: repository,
+		Repository:     repository,
+		RepositoryCart: repositoryCart,
 	}
 }

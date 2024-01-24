@@ -4,11 +4,21 @@ import (
 	"go-api-mini-shop/domain"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type Repository struct {
 	DB *gorm.DB
+}
+
+// FindByID implements domain.CartRepository.
+func (r *Repository) FindByID(id int) (*domain.Cart, error) {
+	var cart domain.Cart
+
+	if err := r.DB.Preload("Product.Category").Preload("User").First(&cart, id).Error; err != nil {
+		return nil, err
+	}
+
+	return &cart, nil
 }
 
 // Create implements domain.CartRepository.
@@ -17,7 +27,7 @@ func (r *Repository) Create(cart *domain.Cart) (*domain.Cart, error) {
 		return nil, err
 	}
 
-	if err := r.DB.Preload(clause.Associations).First(&cart, cart.ID).Error; err != nil {
+	if err := r.DB.Preload("Product.Category").Preload("User").First(&cart, cart.ID).Error; err != nil {
 		return nil, err
 	}
 
@@ -34,10 +44,10 @@ func (r *Repository) Delete(id int) error {
 }
 
 // FindAll implements domain.CartRepository.
-func (r *Repository) FindAll(user_id int) ([]*domain.Cart, error) {
+func (r *Repository) FindAll(params map[string]any) ([]*domain.Cart, error) {
 	var carts []*domain.Cart
 
-	if err := r.DB.Preload(clause.Associations).Where("user_id = ?", user_id).Find(&carts).Error; err != nil {
+	if err := r.DB.Preload("Product.Category").Preload("User").Where(params).Find(&carts).Error; err != nil {
 		return nil, err
 	}
 
@@ -50,7 +60,7 @@ func (r *Repository) Update(cart *domain.Cart) (*domain.Cart, error) {
 		return nil, err
 	}
 
-	if err := r.DB.Preload(clause.Associations).First(&cart, cart.ID).Error; err != nil {
+	if err := r.DB.Preload("Product.Category").Preload("User").First(&cart, cart.ID).Error; err != nil {
 		return nil, err
 	}
 

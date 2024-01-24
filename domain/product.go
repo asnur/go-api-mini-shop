@@ -15,7 +15,7 @@ func (p *Product) TableName() string {
 }
 
 type ProductUsecase interface {
-	GetAll() ([]*Product, error)
+	GetAll(params map[string]any) ([]*Product, error)
 	GetByID(id int) (*Product, error)
 	Create(product Product) (*Product, error)
 	Update(product Product) (*Product, error)
@@ -23,7 +23,7 @@ type ProductUsecase interface {
 }
 
 type ProductRepository interface {
-	FindAll() ([]*Product, error)
+	FindAll(params map[string]any) ([]*Product, error)
 	FindByID(id int) (*Product, error)
 	Create(product *Product) (*Product, error)
 	Update(product *Product) (*Product, error)

@@ -4,26 +4,26 @@ import (
 	"go-api-mini-shop/domain"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-type ProductController struct {
-	UseCase domain.ProductUsecase
+type OrderController struct {
+	UseCase domain.OrderUsecase
 }
 
-func NewProductController(usecase domain.ProductUsecase) *ProductController {
-	return &ProductController{
+func NewOrderController(usecase domain.OrderUsecase) *OrderController {
+	return &OrderController{
 		UseCase: usecase,
 	}
 }
 
-func (c *ProductController) GetAll(ctx *fiber.Ctx) error {
-	var params map[string]interface{}
+func (c *OrderController) GetAll(ctx *fiber.Ctx) error {
+	// Get User ID from JWT
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	user_id := int(claims["id"].(float64))
 
-	if err := ctx.BodyParser(&params); err != nil {
-		params = nil
-	}
-
-	result, err := c.UseCase.GetAll(params)
+	result, err := c.UseCase.GetAll(user_id)
 
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(domain.Response{
@@ -48,7 +48,38 @@ func (c *ProductController) GetAll(ctx *fiber.Ctx) error {
 	})
 }
 
-func (c *ProductController) GetByID(ctx *fiber.Ctx) error {
+func (c *OrderController) Insert(ctx *fiber.Ctx) error {
+	var order struct {
+		CartID []int `json:"cart_id"`
+	}
+
+	if err := ctx.BodyParser(&order); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	// Get User ID from JWT
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	user_id := int(claims["id"].(float64))
+
+	result, err := c.UseCase.Insert(user_id, order.CartID)
+
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(domain.Response{
+			Status:  fiber.StatusBadRequest,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
+
+	return ctx.JSON(domain.Response{
+		Status:  fiber.StatusOK,
+		Message: "Success",
+		Data:    result,
+	})
+}
+
+func (c *OrderController) Detail(ctx *fiber.Ctx) error {
 	id, err := ctx.ParamsInt("id")
 
 	if err != nil {
@@ -76,55 +107,7 @@ func (c *ProductController) GetByID(ctx *fiber.Ctx) error {
 	})
 }
 
-func (c *ProductController) Insert(ctx *fiber.Ctx) error {
-	var product domain.Product
-
-	if err := ctx.BodyParser(&product); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	result, err := c.UseCase.Create(product)
-
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(domain.Response{
-			Status:  fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	return ctx.JSON(domain.Response{
-		Status:  fiber.StatusOK,
-		Message: "Success",
-		Data:    result,
-	})
-}
-
-func (c *ProductController) Update(ctx *fiber.Ctx) error {
-	var product domain.Product
-
-	if err := ctx.BodyParser(&product); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	result, err := c.UseCase.Update(product)
-
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(domain.Response{
-			Status:  fiber.StatusBadRequest,
-			Message: err.Error(),
-			Data:    nil,
-		})
-	}
-
-	return ctx.JSON(domain.Response{
-		Status:  fiber.StatusOK,
-		Message: "Success",
-		Data:    result,
-	})
-}
-
-func (c *ProductController) Delete(ctx *fiber.Ctx) error {
+func (c *OrderController) Delete(ctx *fiber.Ctx) error {
 	id, err := ctx.ParamsInt("id")
 
 	if err != nil {
@@ -148,6 +131,5 @@ func (c *ProductController) Delete(ctx *fiber.Ctx) error {
 	return ctx.JSON(domain.Response{
 		Status:  fiber.StatusOK,
 		Message: "Success",
-		Data:    nil,
 	})
 }

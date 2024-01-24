@@ -1,6 +1,8 @@
 package product
 
-import "go-api-mini-shop/domain"
+import (
+	"go-api-mini-shop/domain"
+)
 
 type UseCase struct {
 	Repository domain.ProductRepository
@@ -27,8 +29,9 @@ func (u *UseCase) Delete(id int) error {
 }
 
 // GetAll implements domain.ProductUsecase.
-func (u *UseCase) GetAll() ([]*domain.Product, error) {
-	result, err := u.Repository.FindAll()
+func (u *UseCase) GetAll(params map[string]any) ([]*domain.Product, error) {
+
+	result, err := u.Repository.FindAll(params)
 
 	if err != nil {
 		return nil, err
