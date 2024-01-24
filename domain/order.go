@@ -1,11 +1,12 @@
 package domain
 
 type Order struct {
-	ID     int  `json:"id" gorm:"primaryKey"`
-	UserID int  `json:"user_id" gorm:"type:int"`
-	User   User `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Total  int  `json:"total" gorm:"type:int"`
-	Status int  `json:"status" gorm:"type:int"`
+	ID           int           `json:"id" gorm:"primaryKey"`
+	UserID       int           `json:"user_id" gorm:"type:int"`
+	User         User          `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Total        int           `json:"total" gorm:"type:int"`
+	Status       int           `json:"status" gorm:"type:int"`
+	OrderDetails []OrderDetail `gorm:"foreignKey:OrderID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (o *Order) TableName() string {
@@ -13,14 +14,14 @@ func (o *Order) TableName() string {
 }
 
 type OrderUsecase interface {
-	GetAll() ([]*Order, error)
+	GetAll(user_id int) ([]*Order, error)
 	GetByID(id int) (*Order, error)
 	Insert(user_id int, total int, status int) (*Order, error)
 	Delete(id int) error
 }
 
 type OrderRepository interface {
-	FindAll() ([]*Order, error)
+	FindAll(user_id int) ([]*Order, error)
 	FindByID(id int) (*Order, error)
 	Create(order *Order) (*Order, error)
 	Delete(id int) error
