@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6380:6379"
+    volumes:
+      - mini-shop-redis:/data
+    networks:
+      - mini-shop-network
+
+  postgres:
+    image: "postgres:latest"
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: "admin"
+      POSTGRES_DB: "mini_shop"
+    ports:
+      - "5433:5432"
+    volumes:
+      - mini-shop-db:/var/lib/postgresql/data
+    networks:
+      - mini-shop-network
+
+  mini_shop_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+      - postgres
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres
+      DB_USERNAME: admin
+      DB_PASSWORD: 123456
+      DB_PORT: 5432
+      DB_NAME: mini_shop
+      JWT_SECRET: loremipsum
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD:
+      REDIS_TTL: 3600
+    networks:
+      - mini-shop-network
+    restart: always
+
+volumes:
+  mini-shop-redis:
+  mini-shop-db:
+
+networks:
+  mini-shop-network:
