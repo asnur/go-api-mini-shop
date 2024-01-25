@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"go-api-mini-shop/config"
 	"go-api-mini-shop/delivery/http/controllers"
 	"go-api-mini-shop/delivery/http/routes"
@@ -41,6 +42,13 @@ var (
 				panic(err)
 			}
 
+			// Connect to Redis
+			redis, err := config.ConnectRedis()
+
+			if err != nil {
+				panic(err)
+			}
+
 			// Set Address
 			address := ip + ":" + port
 
@@ -50,7 +58,8 @@ var (
 			categoryController := controllers.NewCategoryController(categoryUseCase)
 
 			productRepository := product_repository.NewRepository(db)
-			productUseCase := product_usecase.NewUseCase(productRepository)
+			productRepositoryRedis := product_repository.NewRepositoryRedis(context.TODO(), redis)
+			productUseCase := product_usecase.NewUseCase(productRepository, *productRepositoryRedis)
 			productController := controllers.NewProductController(productUseCase)
 
 			cartRepository := cart_repository.NewRepository(db)
